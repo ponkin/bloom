@@ -3,6 +3,7 @@ lazy val commonSettings = Seq(
   version := "0.10",
   scalaVersion := "2.11.8",
   licenses += ("Apache-2.0", url("https://choosealicense.com/licenses/apache-2.0/")),
+  scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-language:existentials", "-language:higherKinds"),
   bintrayRepository := "bloom"
 )
   
@@ -46,6 +47,7 @@ lazy val server = project.in(file("server")).
     name := "bloom-server",
     crossPaths       := false,
     autoScalaLibrary := false,
+    val doNotPublishSettings = Seq(publish := {})
     libraryDependencies ++= Seq (
       "com.github.melrief" %% "pureconfig"    % "0.4.0",
       "org.log4s"          %% "log4s"         % "1.3.3",
