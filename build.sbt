@@ -1,7 +1,9 @@
 lazy val commonSettings = Seq(
   organization := "com.github.ponkin",
   version := "0.10",
-  scalaVersion := "2.11.8"
+  scalaVersion := "2.11.8",
+  licenses += ("Apache-2.0", url("https://choosealicense.com/licenses/apache-2.0/")),
+  bintrayRepository := "bloom"
 )
   
 lazy val driver = project.in(file("driver")).
@@ -42,6 +44,8 @@ lazy val server = project.in(file("server")).
   settings(commonSettings: _*).
   settings(    
     name := "bloom-server",
+    crossPaths       := false,
+    autoScalaLibrary := false,
     libraryDependencies ++= Seq (
       "com.github.melrief" %% "pureconfig"    % "0.4.0",
       "org.log4s"          %% "log4s"         % "1.3.3",

@@ -12,6 +12,8 @@ dockerExposedVolumes ++= Seq("data")
 
 daemonUser := "blooms"
 
+dockerRepository := Some("ponkin")
+
 mappings in Universal += {
   // we are using the reference.conf as default application.conf
   // the user can override settings here
