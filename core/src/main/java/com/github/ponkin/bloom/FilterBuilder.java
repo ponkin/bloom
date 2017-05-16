@@ -9,7 +9,7 @@ import java.io.IOException;
  *
  * @author Alexey Ponkin
  */
-interface FilterBuilder<T extends Filter> {
+public interface FilterBuilder<T extends Filter> {
 
     FilterBuilder useOffHeapMemory(boolean useOffHeapMemory);
 

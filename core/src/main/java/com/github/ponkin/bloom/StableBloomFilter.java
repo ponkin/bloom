@@ -85,7 +85,7 @@ public class StableBloomFilter implements Filter {
       segments[i] = new ReentrantReadWriteLock();
     }
     log.log(
-        Level.INFO,
+        Level.FINE,
         String.format(
           "Stable Bloom filter: %1$d hash functions, %2$d bits, %3$d bits per elemnent",
           numHashFunctions,
@@ -258,7 +258,7 @@ public class StableBloomFilter implements Filter {
   /**
    * Builder for  StableBloomFilter
    */
-  static class Builder implements FilterBuilder<StableBloomFilter>{
+  public static class Builder implements FilterBuilder<StableBloomFilter>{
     private double fpp = Utils.DEFAULT_FPP;
     private long capacity = 0L;
     private File file = null;
@@ -270,25 +270,29 @@ public class StableBloomFilter implements Filter {
       super();
     }
     
+    @Override
     public Builder withFalsePositiveRate(double fpp) {
       Utils.checkArgument(fpp > 0.0 && fpp < 1.0, 
-          String.format("False positive rate(%s) must be in range (0, 1)", fpp));
+          String.format("False positive rate(%f) must be in range (0, 1)", fpp));
       this.fpp = fpp;
       return this;
     }
 
+    @Override
     public Builder withExpectedNumberOfItems(long expected) {
       Utils.checkArgument(expected > 0, 
-          String.format("Expected number of insertions (%s) must be > 0", expected));
+          String.format("Expected number of insertions (%d) must be > 0", expected));
       this.capacity = expected;
       return this;
     }
 
+    @Override
     public Builder useOffHeapMemory(boolean useOffHeapMemory) {
       this.useOffHeapMemory = useOffHeapMemory;
       return this;
     }
 
+    @Override
     public Builder withFileMapped(File file) {
       this.file = file;
       return this;
@@ -302,11 +306,12 @@ public class StableBloomFilter implements Filter {
 
     public Builder withBitsPerBucket(int bitsPerBucket) {
       Utils.checkArgument(bitsPerBucket > 0 && bitsPerBucket < 64, 
-          String.format("number of bits(%s) for each bucket must in range (0, 64)", bitsPerBucket));
+          String.format("number of bits(%d) for each bucket must in range (0, 64)", bitsPerBucket));
       this.bitsPerBucket = bitsPerBucket;
       return this;
     }
 
+    @Override
     public StableBloomFilter build() throws IOException {
       if(!useOffHeapMemory) {
         Utils.checkArgument(file == null,

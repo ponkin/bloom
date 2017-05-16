@@ -10,6 +10,12 @@ import java.io.RandomAccessFile;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+/**
+ * Bit array implementation with
+ * off-heap memory management.
+ *
+ * @author Alexey Ponkin
+ */
 class OffHeapBitArray implements BitSet {
 
   private static final Logger log = Logger.getLogger(OffHeapBitArray.class.getName());
@@ -34,7 +40,8 @@ class OffHeapBitArray implements BitSet {
   // word is 8 bits
   static long numWords(long numBits) {
     if (numBits <= 0) {
-      throw new IllegalArgumentException("numBits must be positive, but got " + numBits);
+      throw new IllegalArgumentException(
+          String.format("numBits must be positive, but got %s", numBits));
     }
     // need to align with long
     long numWords = ((long) Math.ceil(numBits / 64.0) << 3);
@@ -47,7 +54,7 @@ class OffHeapBitArray implements BitSet {
    * @param numBits - number of bits
    */
   OffHeapBitArray(long numBits) {
-    log.log(Level.INFO, String.format("Allocating off-heap memory for %1$d bits", numBits));
+    log.log(Level.FINE, String.format("Allocating off-heap memory for %1$d bits", numBits));
     this.file = null;
     this.addr = Platform.allocateRaw(numWords(numBits));
     this.numBits = numBits;
@@ -62,7 +69,7 @@ class OffHeapBitArray implements BitSet {
    * @param numBits - number of bits to allocate
    */
   OffHeapBitArray(File file, long numBits) throws IOException {
-    log.log(Level.INFO, String.format("Mapping off heap memory to '%1$s' for %2$d bits", file, numBits));
+    log.log(Level.FINE, String.format("Mapping off heap memory to '%1$s' for %2$d bits", file, numBits));
     this.file = new RandomAccessFile(file, "rw");
     this.numBits = numBits;
     long size = numWords(numBits);

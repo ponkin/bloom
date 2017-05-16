@@ -27,7 +27,7 @@ import java.io.IOException;
  *
  * @author Alexey Ponkin
  */
-public class PartitionedBloomFilter implements Filter {
+class PartitionedBloomFilter implements Filter {
 
   private static final Logger log = Logger.getLogger(PartitionedBloomFilter.class.getName());
 
@@ -68,7 +68,7 @@ public class PartitionedBloomFilter implements Filter {
   private final AtomicLong numItems;
 
   PartitionedBloomFilter(BitSet bits, int numHashFunctions, HashFunction strategy, long sliceSize) {
-    log.log(Level.INFO,
+    log.log(Level.FINE,
       String.format(
         "PartitionedBloomFilter: %1$d hash functions, %2$d bits, %3$d slice length",
           numHashFunctions, bits.bitSize(), sliceSize));
@@ -164,8 +164,7 @@ public class PartitionedBloomFilter implements Filter {
 
     if (!(other instanceof PartitionedBloomFilter)) {
       throw new IncompatibleMergeException(
-          "Cannot merge bloom filter of class " + other.getClass().getName()
-          );
+          String.format("Cannot merge bloom filter of class %s", other.getClass().getName()));
     }
 
     PartitionedBloomFilter that = (PartitionedBloomFilter) other;
@@ -176,8 +175,7 @@ public class PartitionedBloomFilter implements Filter {
 
     if (this.numHashFunctions != that.numHashFunctions) {
       throw new IncompatibleMergeException(
-          "Cannot merge bloom filters with different number of hash functions"
-          );
+          "Cannot merge bloom filters with different number of hash functions");
     }
 
     // lock all segments
@@ -242,9 +240,9 @@ public class PartitionedBloomFilter implements Filter {
   }
 
   /**
-   * Builder for PartiotionedBloomFilter
+   * Builder for PartitionedBloomFilter
    */
-  static class Builder implements FilterBuilder<PartitionedBloomFilter> {
+  public static class Builder implements FilterBuilder<PartitionedBloomFilter> {
     private double fpp = Utils.DEFAULT_FPP;
     private long capacity;
     private File file = null;
@@ -293,7 +291,7 @@ public class PartitionedBloomFilter implements Filter {
 
       BitSet bitset = null;
       long numBits = Utils.optimalNumOfBits(capacity, fpp);
-      log.log(Level.INFO, "Optimal num bits are"+String.valueOf(numBits));
+      log.log(Level.FINE, "Optimal num bits are"+String.valueOf(numBits));
       int numHashFunctions = Utils.optimalNumOfHashFunctions(capacity, numBits);
       // align numBits with modulo k - to have equal size slices
       numBits = ((numBits+numHashFunctions-1) / numHashFunctions) * numHashFunctions;

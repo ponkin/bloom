@@ -9,12 +9,23 @@ import java.util.logging.Level;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * Classic bloom filter implementation
+ * To calculate hash by default Murmur3 hash is used (128 bit) but this can
+ * be changed in builder. Implementation is thread safe and fast.
+ *
+ * @author Alexey Ponkin
+ * @see <a href="http://llimllib.github.io/bloomfilter-tutorial/">Tutorial</a>
+ */
 public class BloomFilter implements Filter {
 
   private static final Logger log = Logger.getLogger(BloomFilter.class.getName());
 
   private final int numHashFunctions;
 
+  /**
+   * Underlying bit array
+   */
   private final BitSet bits;
 
   /**
@@ -35,7 +46,7 @@ public class BloomFilter implements Filter {
   private final Lock[] segments = new Lock[DEFAULT_CONCURRENCY_LEVEL];
 
   BloomFilter(BitSet bits, int numHashFunctions, HashFunction strategy) {
-    log.log(Level.INFO,
+    log.log(Level.FINE,
       String.format(
         "Bloom filter: %1$d hash functions, %2$d bits",
           numHashFunctions, bits.bitSize()));
@@ -152,8 +163,7 @@ public class BloomFilter implements Filter {
 
     if (!(other instanceof BloomFilter)) {
       throw new IncompatibleMergeException(
-          "Cannot merge bloom filter of class " + other.getClass().getName()
-          );
+          String.format("Cannot merge bloom filter of class %1$s", other.getClass().getName()));
     }
 
     BloomFilter that = (BloomFilter) other;
@@ -164,8 +174,7 @@ public class BloomFilter implements Filter {
 
     if (this.numHashFunctions != that.numHashFunctions) {
       throw new IncompatibleMergeException(
-          "Cannot merge bloom filters with different number of hash functions"
-          );
+          "Cannot merge bloom filters with different number of hash functions");
     }
 
     for (Lock seg : segments) {
@@ -188,7 +197,7 @@ public class BloomFilter implements Filter {
   /**
    * Builder for BloomFilter
    */
-  static class Builder implements FilterBuilder<BloomFilter> {
+  public static class Builder implements FilterBuilder<BloomFilter> {
     private double fpp = Utils.DEFAULT_FPP;
     private long capacity = 0L;
     private File file = null;
@@ -199,6 +208,7 @@ public class BloomFilter implements Filter {
       super();
     }
 
+    @Override
     public Builder withFalsePositiveRate(double fpp) {
       Utils.checkArgument(fpp > 0.0 && fpp < 1.0,
          String.format("False positive rate(%s) must be in range (0, 1)", fpp));
@@ -206,6 +216,7 @@ public class BloomFilter implements Filter {
       return this;
     }
 
+    @Override
     public Builder withExpectedNumberOfItems(long expected) {
       Utils.checkArgument(expected > 0,
          String.format("Expected number of insertions (%s) must be > 0", expected ));
@@ -213,11 +224,13 @@ public class BloomFilter implements Filter {
       return this;
     }
 
+    @Override
     public Builder useOffHeapMemory(boolean useOffHeapMemory) {
       this.useOffHeapMemory = useOffHeapMemory;
       return this;
     }
 
+    @Override
     public Builder withFileMapped(File file) {
       this.file = file;
       return this;
@@ -229,6 +242,7 @@ public class BloomFilter implements Filter {
       return this;
     }
 
+    @Override
     public BloomFilter build() throws IOException {
       if(!useOffHeapMemory) {
         Utils.checkArgument(file == null,
@@ -236,7 +250,7 @@ public class BloomFilter implements Filter {
       }
 
       long numBits = Utils.optimalNumOfBits(capacity, fpp);
-      log.log(Level.INFO, "Optimal num bits are"+String.valueOf(numBits));
+      log.log(Level.FINE, String.format("Optimal num bits are %d", numBits));
       int numHashFunctions = Utils.optimalNumOfHashFunctions(capacity, numBits);
 
       BitSet bitset = null;

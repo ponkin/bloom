@@ -4,6 +4,8 @@ import java.util.Arrays;
 
 /**
  * On heap Bit array implementation
+ * Bit array is implemented as
+ * array of longs - <code>long[]</code>
  * 
  * @author Alexey Ponkin
  */
@@ -15,20 +17,35 @@ final class BitArray implements BitSet {
 
   static int numWords(long numBits) {
     if (numBits <= 0) {
-      throw new IllegalArgumentException("numBits must be positive, but got " + numBits);
+      throw new IllegalArgumentException(
+          String.format("numBits must be positive, but got %d", numBits));
     }
     long numWords = (long) Math.ceil(numBits / 64.0);
     if (numWords > Integer.MAX_VALUE) {
-      throw new IllegalArgumentException("Can't allocate enough space for " + numBits + " bits");
+      throw new IllegalArgumentException(
+          String.format("Can't allocate enough space for %d bits", numWords));
     }
     return (int) numWords;
   }
 
-  BitArray(long numBits) {
+  /**
+   * Create simple bit array
+   * on heap.
+   *
+   * @param numBits length of bit array
+   */
+  public BitArray(long numBits) {
     this(new long[numWords(numBits)]);
   }
     
 
+  /**
+   * Create bit array with
+   * underlying <code>data</code>
+   * array
+   *
+   * @param data bit array storage
+   */
   private BitArray(long[] data) {
     this.data = data;
     long bitCount = 0;
@@ -38,7 +55,6 @@ final class BitArray implements BitSet {
     this.bitCount = bitCount;
   }
 
-  /** Returns true if the bit changed value. */
   @Override
   public boolean set(long index) {
     if (!get(index)) {
@@ -49,7 +65,6 @@ final class BitArray implements BitSet {
     return false;
   }
 
-  /** Returns true if the bit changed value. */
   @Override
   public boolean unset(long index) {
     if (get(index)) {
@@ -65,13 +80,11 @@ final class BitArray implements BitSet {
     return (data[(int) (index >>> 6)] & (1L << index)) != 0;
   }
 
-  /** Number of bits */
   @Override
   public long bitSize() {
     return (long) data.length * Long.SIZE;
   }
 
-  /** Number of set bits (1s) */
   @Override
   public long cardinality() {
     return bitCount;
@@ -82,7 +95,6 @@ final class BitArray implements BitSet {
     Arrays.fill(data, ZERO);
   }
 
-  /** Combines the two BitArrays using bitwise OR. */
   @Override
   public void putAll(BitSet array) throws IncompatibleMergeException {
     if (array == null || !(array instanceof BitArray))  {

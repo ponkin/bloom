@@ -141,7 +141,7 @@ public class ScalableBloomFilter implements Filter {
   }
 
   /**
-   * Builder for ScalablePartiotionedBloomFilter
+   * Builder for ScalablePartitionedBloomFilter
    */
   static class Builder {
   }

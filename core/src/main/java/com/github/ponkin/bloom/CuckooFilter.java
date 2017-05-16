@@ -356,7 +356,7 @@ public class CuckooFilter implements Filter {
   /**
    * Builder for CuckooFilter
    */
-  static class Builder implements FilterBuilder<CuckooFilter>{
+  public static class Builder implements FilterBuilder<CuckooFilter>{
     private double fpp = 0.03;
     private long capacity = 0L;
     private File file = null;
@@ -367,11 +367,13 @@ public class CuckooFilter implements Filter {
       super();
     }
 
+    @Override
     public Builder useOffHeapMemory(boolean off) {
       this.useOffHeapMemory = off;
       return this;
     }
     
+    @Override
     public Builder withFalsePositiveRate(double fprate) {
       Utils.checkArgument(fprate > 0.0 && fprate < 1.0,
          String.format("False positive rate(%s) must be in range (0, 1)", fprate));
@@ -379,6 +381,7 @@ public class CuckooFilter implements Filter {
       return this;
     }
 
+    @Override
     public Builder withExpectedNumberOfItems(long expected) {
       Utils.checkArgument(expected > 0,
          String.format("Expected number of insertions (%s) must be > 0", expected));
@@ -386,6 +389,7 @@ public class CuckooFilter implements Filter {
       return this;
     }
 
+    @Override
     public Builder withFileMapped(File file) {
       this.file = file;
       return this;
@@ -397,6 +401,7 @@ public class CuckooFilter implements Filter {
       return this;
     }
 
+    @Override
     public CuckooFilter build() throws IOException {
       if(!useOffHeapMemory) {
         Utils.checkArgument(file == null,

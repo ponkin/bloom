@@ -5,17 +5,23 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * bit array implementation with
- * pre-defined bucket size.
+ * Bit array implementation with
+ * pre-defined bucket size. Bucket can contain
+ * several items. Each item must have pre defined
+ * length in bits.
+ * <p>
+ * BitArray is actually particular case of BucketSet with
+ * the following parameters: <code>bitsPerTag=1</code>,
+ * <code>tagsPerBucket=1</code>
  *
  * @author Alexey Ponkin
  *
  */
-public class BucketSet implements Closeable {
+class BucketSet implements Closeable {
 
   private static final Logger log = Logger.getLogger(BucketSet.class.getName());
 
-  /**
+  /*
    * masks for tags - masks[i]
    * where MASKS[i] - long with all zeros except 1 in i position
    */
@@ -36,13 +42,21 @@ public class BucketSet implements Closeable {
   private final int bitsPerTag;
   private final BitSet bitset;
 
-  BucketSet(int bitsPerTag, int tagsPerBucket, long numBuckets, BitSet bitset) {
+  /**
+   * Constructor will not check that underlying
+   * bitset length is enough to keep that many items
+   *
+   * @param bitsPerTag how many bits to use per item
+   * @param tagsPerBucket how many items can be inside one bucket
+   * @param numBuckets number of buckets
+   */
+  public BucketSet(int bitsPerTag, int tagsPerBucket, long numBuckets, BitSet bitset) {
     this.bitset = bitset;
     this.bitsPerTag = bitsPerTag;
     this.tagsPerBucket = tagsPerBucket;
     bytesPerBucket = (bitsPerTag * tagsPerBucket + 7) >> 3;
     this.numBuckets = numBuckets;
-    log.log(Level.INFO,
+    log.log(Level.FINE,
       String.format(
         "Bucket set: %1$d buckets, %2$d tags per bucket, %3$d bits per tag, %4$d total bits",
           numBuckets, tagsPerBucket, bitsPerTag, bitset.bitSize()));
@@ -58,7 +72,7 @@ public class BucketSet implements Closeable {
    * @return true if there is free space in bucket and
    * tag was successfully appended, or tag is already inside bucket, false otherwise
    */
-  boolean append(long bucketIdx, long tag) {
+  public boolean append(long bucketIdx, long tag) {
     boolean result = true;
     if(checkTag(bucketIdx, tag) == -1) { // no tag exists in the bucket
       int pos = getFreePosInBucket(bucketIdx);
@@ -86,11 +100,12 @@ public class BucketSet implements Closeable {
 
   /**
    * Overwrite tag with zeros inside underlying bit vector
+   * which is basically a delete operation.
    *
    * @param bucketIdx target bucket index
    * @param posInBucket target position in the bucket
    */
-  void deleteTag(long bucketIdx, int posInBucket) {
+  public void deleteTag(long bucketIdx, int posInBucket) {
     writeTag(bucketIdx, posInBucket, 0L);
   }
 
@@ -102,7 +117,7 @@ public class BucketSet implements Closeable {
    * @param posInBucket position inside bucket
    * @param tag value
    */
-  void writeTag(long bucketIdx, int posInBucket, long tag) {
+  public void writeTag(long bucketIdx, int posInBucket, long tag) {
     long tagIdx = startPos(bucketIdx, posInBucket);
     long mask = MASKS[bitsPerTag];
     for(long i=tagIdx; i<tagIdx+bitsPerTag; i++) {
@@ -122,7 +137,7 @@ public class BucketSet implements Closeable {
    * @param posInBucket concrete tag position in bucket
    * @return tag in given position inside bucket
    */
-  final long readTag(long bucketIdx, int posInBucket) {
+  public final long readTag(long bucketIdx, int posInBucket) {
     long tagIdx = startPos(bucketIdx, posInBucket);
     long tag = 0L;
     long mask = MASKS[bitsPerTag];
@@ -142,7 +157,7 @@ public class BucketSet implements Closeable {
    * @param bucketIdx - target bucket index
    * @return free position in given bucket or -1 if none
    */
-  int getFreePosInBucket(long bucketIdx) {
+  public int getFreePosInBucket(long bucketIdx) {
     return checkTag(bucketIdx, 0L);
   }
 
@@ -153,7 +168,7 @@ public class BucketSet implements Closeable {
    * @param tag - tag to check
    * @return index of given tag or -1 if none
    */
-  int checkTag(long bucketIdx, long tag) {
+  public int checkTag(long bucketIdx, long tag) {
     for(int pos=0; pos<tagsPerBucket; pos++) {
       if(tag == readTag(bucketIdx, pos)) {
         return pos;
@@ -162,17 +177,17 @@ public class BucketSet implements Closeable {
     return -1;
   }
 
-  long sizeInBits() {
+  public long sizeInBits() {
     return bitset.bitSize();
   }
 
-  void putAll(BucketSet other) throws Exception {
+  public void putAll(BucketSet other) throws Exception {
     this.bitset.putAll(other.bitset);
   }
   
   @Override
   public void close() {
-    log.log(Level.INFO, "Closing Bucket Set");
+    log.log(Level.FINE, "Closing Bucket Set");
     try{
       bitset.close();
     } catch (Exception err) {

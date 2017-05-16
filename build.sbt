@@ -1,6 +1,6 @@
 lazy val commonSettings = Seq(
   organization := "com.github.ponkin",
-  version := "0.10",
+  version := "0.11",
   scalaVersion := "2.11.8",
   licenses += ("Apache-2.0", url("https://choosealicense.com/licenses/apache-2.0/")),
   scalacOptions ++= Seq (
